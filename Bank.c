@@ -1,8 +1,15 @@
 #include <stdio.h>
 #include <string.h>
 
+typedef struct acc{
+    int accNo;
+    char name[100];
+    int pin;
+    float bal;
+};
+
 int a; // flag to indicate the account type
-static int bal[] = {548734, 243532};
+int bal[] = {548734, 243532};
 char usn[][10] = {"Pranav", "Null"}; // usernames
 
 void deposit(int i); // function to deposit amount
@@ -59,13 +66,12 @@ void withdraw(int i)
 void acc(char *name, int bal)
 {
     strcpy(usn, name);
-        a = 1; // set account type to 1
-        while(1)
-        {
-            printf("=============================================\n");
-            printf("         =====Account:%s=====\n", usn);
-            printf("Options:\n1)Check account balance\n2)Deposit\n3)Withdraw\n4)Exit\n");
-            printf("Enter your choice:");
+    while(1)
+    {
+        printf("=============================================\n");
+        printf("         =====Account:%s=====\n", usn);
+        printf("Options:\n1)Check account balance\n2)Deposit\n3)Withdraw\n4)Exit\n");
+        printf("Enter your choice:");
             int ch;
             scanf("%d", &ch);
             switch (ch)
