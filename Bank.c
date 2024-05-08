@@ -1,172 +1,117 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-int a; // flag to indicate the account type
-int bal1 = 548734; // balance for account type 1
-int bal2 = 243532; // balance for account type 2
-
-void deposit(int i); // function to deposit amount
-void withdraw(int i); // function to withdraw amount
-
-int main()
-{
+typedef struct{
+    int accNo;
+    char name[100];
     int pin;
-    char usn[10]; // username
+    float bal;
+}account;
+
+void displayBalance(account *acc){
+    printf("Balance is: Rs. %.2f\n", acc->bal);
+}
+
+void deposit(account *acc, float amount){
+    acc->bal += amount;
+}
+
+void withdraw(account *acc, float amount){
+    if(amount > acc->bal){
+        printf("You don't have Rs. %.2f in your account\n", amount);
+    }
+    else{
+        acc->bal -= amount;
+        printf("Rs. %.2f has been withdrawn from your account\n", amount);
+    }
+}
+
+void createAcc(account *acc, char *name, int pin, float amount){
+    static int accNoCounter = 1;
+    acc->accNo = accNoCounter++;
+    strcpy(acc->name, name);
+    acc->pin = pin;
+    acc->bal = amount;
+}
+
+int main(){
+    int numAccounts = 0;
+    account *accounts = malloc(numAccounts * sizeof(account));
+
+    int pin;
     printf("         =====Welcome To Bank!!=====\n");
     printf("=============================================\n");
-    printf("Please sign in to your account to continue\n");
-    printf("PIN code: ");
+    printf("Please sign in to your account by entering your PIN to continue or type 1 to create a new account\n");
     scanf("%d", &pin);
-    switch (pin)
-    {
-    case 2316:
-    {
-        strcpy(usn, "Pranav");
-        a = 1; // set account type to 1
-        acc:
-        while(1)
-        {
-            printf("=============================================\n");
-            printf("         =====Account:%s=====\n", usn);
-            printf("Options:\n1)Check account balance\n2)Deposit\n3)Withdraw\n4)Exit\n");
-            printf("Enter your choice:");
-            int ch;
-            scanf("%d", &ch);
-            switch (ch)
-            {
-            case 1:
-            {
-                printf("Balance is: Rs.%d\n", bal1);
-            }
+
+    if(pin == 1){
+        char name[100];
+        int newPin;
+        float initialAmount;
+
+        printf("Enter your name: ");
+        scanf("%s", name);
+        printf("Enter a PIN: ");
+        scanf("%d", &newPin);
+        printf("Enter initial deposit amount: Rs. ");
+        scanf("%f", &initialAmount);
+
+        accounts = realloc(accounts, (numAccounts + 1) * sizeof(account));
+        createAcc(&accounts[numAccounts++], name, newPin, initialAmount);
+        printf("New account created successfully!\n");
+
+        pin = newPin;
+    }
+
+    int found = 0;
+    account *currentAccount;
+    for(int i = 0; i < numAccounts; i++){
+        if (pin == accounts[i].pin) {
+            currentAccount = &accounts[i];
+            found = 1;
             break;
-            case 2:
-            {
-                printf("Enter amount to deposit: Rs.");
-                int dep;
-                scanf("%d", &dep);
-                deposit(dep);
-                printf("Rs.%d has been sucessfully deposited in your account!\n", dep);
-            }
-            break;
-            case 3:
-            {
-                printf("Enter amount to withdraw: Rs.");
-                int w;
-                scanf("%d", &w);
-                if (w >= bal1)
-                {
-                    printf("You don't have Rs.%d in your account\n", w);
-                }
-                else
-                {
-                    withdraw(w);
-                    printf("Rs.%d has been withdrawn from your account\n", w);
-                }
-            }
-            break;
-            case 4:
-            {
-                printf("            =====Exiting=====\n");
-                return 0;
-            }
-            break;
-            default:
-            {
-                printf("         =====Unknown Option Entered=====\n\n");
-            }
-            }
-            goto acc;
         }
     }
-    case 1099:
-    {
-        strcpy(usn, "Null");
-        acc1:
-        while(1)
-        {
-            printf("=============================================\n");
-            printf("         =====Account:%s=====\n", usn);
-            printf("Options:\n1)Check account balance\n2)Deposit\n3)Withdraw\n4)Exit\n");
-            printf("Enter your choice:");
-            int ch;
-            scanf("%d", &ch);
-            switch (ch)
-            {
-            case 1:
-            {
-                printf("Balance is: Rs.%d\n", bal2);
-            }
-            break;
-            case 2:
-            {
-                printf("Enter amount to deposit: Rs.");
-                int dep;
-                scanf("%d", &dep);
-                deposit(dep);
-                printf("Rs.%d has been sucessfully deposited in your account!\n", dep);
-            }
-            break;
-            case 3:
-            {
-                printf("Enter amount to withdraw: Rs.");
-                int w;
-                scanf("%d", &w);
-                if (w >= bal2)
-                {
-                    printf("You don't have Rs.%d in your account\n", w);
-                }
-                else
-                {
-                    withdraw(w);
-                    printf("Rs.%d has been withdrawn from your account\n", w);
-                }
-            }
-            break;
-            case 4:
-            {
-                printf("            =====Exiting=====\n");
-                return 0;
-            }
-            break;
-            default:
-            {
-                printf("         =====Unknown Option Entered=====\n\n");
-            }
-            }
-            goto acc1;
-        }
-    }
-    break;
-    default:
-    {
+
+    if(!found){
         printf("Unknown PIN entered\n");
+        free(accounts);
         return 0;
     }
+
+    while(1){
+        printf("=============================================\n");
+        printf("         =====Account: %s=====\n", currentAccount->name);
+        printf("Options:\n1) Check account balance\n2) Deposit\n3) Withdraw\n4) Exit\n");
+        printf("Enter your choice: ");
+        int choice;
+        scanf("%d", &choice);
+
+        switch(choice){
+            case 1:
+                displayBalance(currentAccount);
+                break;
+            case 2:
+                printf("Enter amount to deposit: Rs. ");
+                float depositAmount;
+                scanf("%f", &depositAmount);
+                deposit(currentAccount, depositAmount);
+                printf("Rs. %.2f has been successfully deposited in your account!\n", depositAmount);
+                break;
+            case 3:
+                printf("Enter amount to withdraw: Rs. ");
+                float withdrawAmount;
+                scanf("%f", &withdrawAmount);
+                withdraw(currentAccount, withdrawAmount);
+                break;
+            case 4:
+                printf("            =====Exiting=====\n");
+                free(accounts);
+                return 0;
+            default:
+                printf("         =====Unknown Option Entered=====\n\n");
+                break;
+        }
     }
 }
-
-void deposit(int i)
-{
-    if (a == 1)
-    {
-        bal1 += i;
-    }
-    else
-    {
-        bal2 += i;
-    }
-}
-
-void withdraw(int i)
-{
-    if (a == 1)
-    {
-        bal1 -= i;
-    }
-    else
-    {
-        bal2 -= i;
-    }
-}
-
-
