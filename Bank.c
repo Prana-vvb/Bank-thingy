@@ -5,6 +5,7 @@
 typedef struct{
     int accNo;
     char name[100];
+    char accType[10];
     int pin;
     float bal;
 }account;
@@ -27,41 +28,88 @@ void withdraw(account *acc, float amount){
     }
 }
 
-void createAcc(account *acc, char *name, int pin, float amount){
-    static int accNoCounter = 1;
-    acc->accNo = accNoCounter++;
+void createAcc(FILE *fp, account *acc, char *name, char *type, int pin, float amount, int lc){
+    acc->accNo = lc;
     strcpy(acc->name, name);
+    strcpy(acc->accType, type);
     acc->pin = pin;
     acc->bal = amount;
+
+    //Write to file
+    int cols = 5;
+    for(int i = 0; i < cols; i++){
+        if(i != 0){
+            fprintf(fp, ",");
+        }
+        switch(i){
+            case 0:
+                fprintf(fp, "%d", lc);
+                break;
+            case 1:
+                fprintf(fp, "%s", name);
+                break;
+            case 2:
+                fprintf(fp, "%s", type);
+                break;
+            case 3:
+                fprintf(fp, "%d", pin);
+                break;
+            case 4:
+                fprintf(fp, "%.2f", amount);
+        }
+    }
+    fprintf(fp, "\n");
+}
+
+int numAcc(FILE *fp){
+    char line[100];
+    int count = 0;
+    while(fgets(line, sizeof(line), fp) != NULL) {
+        char *token;
+        int elements = 0;
+        token = strtok(line, ",");
+        while (token != NULL) {
+            elements++;
+            token = strtok(NULL, ",");
+        }
+        if (elements == 5) {
+            count++;
+        }
+    }
+    return count;
 }
 
 int main(){
-    int numAccounts = 0;
+    FILE *fp = fopen("accounts.csv", "a+");
+    int numAccounts = numAcc(fp);
     account *accounts = malloc(numAccounts * sizeof(account));
-
     int pin;
-    printf("         =====Welcome To Bank!!=====\n");
+
+    printf("%d         =====Welcome To Bank!!=====\n", numAccounts);
     printf("=============================================\n");
     printf("Please sign in to your account by entering your PIN to continue or type 1 to create a new account\n");
     scanf("%d", &pin);
 
     if(pin == 1){
+        numAccounts++;
         char name[100];
+        char type[10];
         int newPin;
         float initialAmount;
 
         printf("Enter your name: ");
         scanf("%s", name);
+        printf("Enter account type: ");
+        scanf("%s", type);
         printf("Enter a PIN: ");
         scanf("%d", &newPin);
         printf("Enter initial deposit amount: Rs. ");
         scanf("%f", &initialAmount);
 
-        accounts = realloc(accounts, (numAccounts + 1) * sizeof(account));
-        createAcc(&accounts[numAccounts++], name, newPin, initialAmount);
+        accounts = realloc(accounts, numAccounts*sizeof(account));
+        createAcc(fp, &accounts[numAccounts], name, type, newPin, initialAmount, numAccounts);
         printf("New account created successfully!\n");
-
-        pin = newPin;
+        main();
     }
 
     int found = 0;
